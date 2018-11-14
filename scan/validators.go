@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/go-openapi/spec"
+	"github.com/json-iterator/go"
 )
 
 type validationBuilder interface {
@@ -360,7 +361,16 @@ func (se *setExample) Parse(lines []string) error {
 		if err != nil {
 			return err
 		}
-		se.builder.SetExample(d)
+		if s, ok := d.(string); ok {
+			obj := new(interface{})
+			if err = jsoniter.UnmarshalFromString(s, obj); err != nil {
+				se.builder.SetExample(obj)
+			} else {
+				se.builder.SetExample(d)
+			}
+		} else {
+			se.builder.SetExample(d)
+		}
 	}
 	return nil
 }
