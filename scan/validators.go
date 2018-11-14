@@ -308,12 +308,14 @@ func parseValueFromSchema(s string, schema *spec.SimpleSchema) (interface{}, err
 			return strconv.ParseBool(s)
 		case "number", "float64", "float32":
 			return strconv.ParseFloat(s, 64)
-		default:
-			return s, nil
 		}
-	} else {
-		return s, nil
 	}
+	var err error
+	obj := new(interface{})
+	if err = jsoniter.UnmarshalFromString(s, obj); err == nil {
+		return obj, nil
+	}
+	return s, nil
 }
 
 type setDefault struct {
@@ -361,16 +363,7 @@ func (se *setExample) Parse(lines []string) error {
 		if err != nil {
 			return err
 		}
-		if s, ok := d.(string); ok {
-			obj := new(interface{})
-			if err = jsoniter.UnmarshalFromString(s, obj); err != nil {
-				se.builder.SetExample(obj)
-			} else {
-				se.builder.SetExample(d)
-			}
-		} else {
-			se.builder.SetExample(d)
-		}
+		se.builder.SetExample(d)
 	}
 	return nil
 }
